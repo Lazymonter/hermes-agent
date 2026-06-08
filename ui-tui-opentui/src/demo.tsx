@@ -57,7 +57,9 @@ const report = [
   `rendered ${COLS}x${ROWS}; first paint ${(t1 - t0).toFixed(2)}ms`,
   `frame chars: ${frame.length}`,
   `header present: ${seedFrame.includes('hermes')}`,
-  `seed transcript present: ${seedFrame.includes('Key points')}`,
+  // The TOP user line being visible also guards the scroll fix (minHeight:0):
+  // before it, the sticky-bottom scrollbox clipped the top of short content.
+  `seed transcript present (top not clipped): ${seedFrame.includes('switch the TUI')}`,
   `user submit echoed: ${frame.includes('does interactive work?')}`,
   `streamed reply present: ${frame.includes('Native OpenTUI reply')}`,
   `composer present: ${frame.includes('Ctrl+C') || frame.includes('streaming')}`,

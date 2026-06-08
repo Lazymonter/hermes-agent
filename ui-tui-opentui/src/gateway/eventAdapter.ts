@@ -109,7 +109,30 @@ export class EventAdapter {
    * so it replaces (not appends to) the current message list.
    */
   loadTranscript(messages: GatewayTranscriptMessage[], inflight: null | SessionInflightTurn): void {
-    const mapped: Msg[] = (messages ?? []).map(m => ({ role: m.role, text: m.text ?? '' }))
+    const mapped: Msg[] = []
+
+    for (const m of messages ?? []) {
+      if (m.role === 'tool') {
+        // Resumed tool rows carry { name, context } — NOT text — (gateway
+        // _history_to_messages, server.py:2962). Map each to a STANDALONE
+        // compact tool row, matching the live tool.complete path
+        // (opencode-style) so a resumed transcript looks identical to how it
+        // streamed. The full output isn't persisted in resumed history, so
+        // `context` (the arg summary, e.g. "(app.tsx)") is all there is to show.
+        // (Reading m.text here was the bug: tool rows have no text → blank row.)
+        mapped.push({ role: 'tool', text: '', tool: { name: m.name ?? 'tool', summary: m.context } })
+
+        continue
+      }
+
+      const text = m.text ?? ''
+
+      // Skip empty user/assistant/system rows (Ink's toTranscriptMessages does
+      // the same) so resume doesn't inject blank bubbles.
+      if (text.trim()) {
+        mapped.push({ role: m.role, text })
+      }
+    }
 
     if (inflight?.user) {
       mapped.push({ role: 'user', text: inflight.user })

@@ -93,8 +93,12 @@ export function App({ gw, cols: colsProp = 80, rows: rowsProp = 24 }: { gw: Gate
       </box>
 
       {/* Body flex-grows to fill whatever the prompt/composer don't take, so a
-          tall prompt overlay shrinks the transcript instead of overflowing. */}
-      <box style={{ flexGrow: 1, flexShrink: 1, minHeight: 1 }}>
+          tall prompt overlay shrinks the transcript instead of overflowing.
+          minHeight:0 is load-bearing — a flex child defaults to min-height:auto
+          (won't shrink below its CONTENT), which makes the inner scrollbox size
+          to content instead of the viewport and mis-compute its scroll offset
+          (top clipped, empty space below). opencode pins minHeight:0 here too. */}
+      <box style={{ flexGrow: 1, flexShrink: 1, minHeight: 0 }}>
         <Transcript cols={cols} msgs={msgs} t={t} />
       </box>
 

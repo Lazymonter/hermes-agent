@@ -438,8 +438,29 @@ run it under Bun; capture a frame + a perf number. No Python launcher changes ye
     session_id}` instead of `session.create` and seeds the transcript via
     `EventAdapter.loadTranscript(messages, inflight)`. Verified the RPC contract against the real
     gateway: `@method("session.resume")` (server.py:3276) wants `session_id`(required)+`cols`,
-    returns `messages`+`inflight`. Live `hermes --tui --resume <id>` confirmation still pending
-    (needs a saved session + model auth).
+    returns `messages`+`inflight`.
+
+- **Polish pass follow-ups ✓ (2026-06-08) — 2 issues glitch hit after the first polish commit.**
+  `bun run check` now **6/6** (added `demo.resume.tsx`, 12/12).
+  - **Resume dropped tool calls (glitch: "works but removes/doesn't render tool calls").** The
+    gateway emits resumed tool rows as `{role:'tool', name, context}` with **no `text`**
+    (`_history_to_messages`, server.py:2962); `loadTranscript` read `m.text` → blank rows. Compared
+    Ink vs opencode: Ink attaches tool calls as a `.tools` trail on the following assistant message
+    (`toTranscriptMessages`); opencode renders each tool as a standalone compact row, identical for
+    live and loaded. Chose **opencode-consistent** (matches the BUG-2 live render): map each tool row
+    → `{role:'tool', tool:{name, summary: context}}` → renders `⚡ name  (context)`. Output isn't
+    persisted in resumed history, so inline (name+args) is the honest ceiling. Empty user/assistant/
+    system rows filtered (Ink parity). New `demo.resume.tsx` proves mapping + render (incl. tool
+    calls) without spawning Python.
+  - **Transcript scroll quirk (sticky-bottom clipped the top + left a gap below when content <
+    viewport).** Two fixes, grounded in opencode's `routes/session/index.tsx`: (1) `minHeight:0` on
+    the transcript wrapper + scrollbox — a flex child defaults to `min-height:auto` and won't shrink
+    below its content, so the scrollbox sized to content not the viewport; (2) **removed
+    `flexDirection:'column'` from the `<scrollbox>` root** — the scrollbox has internal
+    root→viewport→content children, and forcing column on the root distorted its content-height
+    measurement (the actual phantom-offset cause; height-dependent — clipped ≤32 rows, fine ≥40).
+    tmux + headless H=24/28/32/40: top no longer clipped, content fills to the composer, sticky-bottom
+    still pins the latest on real overflow.
 
 ### Subagent workflow note (for future phases)
 OpenTUI implementation subagents MUST get the `skills` toolset AND be told to

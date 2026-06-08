@@ -6,7 +6,10 @@
 #   4. demo.prompts.tsx (blocking prompts)  — HARD gate (Phase 4: the 4 gateway
 #                    prompts + local confirm; request→render→answer→*.respond
 #                    RPC and request→cancel→deny/cancel RPC for each).
-#   5. demo.real.tsx (real Python gateway)  — transport gate; auto-skips when no
+#   5. demo.resume.tsx (session resume)    — HARD gate: resumed history maps +
+#                    renders, incl. tool calls (gateway tool rows are {name,
+#                    context}, no text — must not render blank).
+#   6. demo.real.tsx (real Python gateway)  — transport gate; auto-skips when no
 #                    Hermes python is resolvable, and passes on PASS|TRANSPORT OK
 #                    (a full model reply needs API keys; transport-up is enough
 #                    to catch regressions). Skip explicitly with
@@ -36,7 +39,7 @@ else
   bad "FakeGateway demo failed"; [ -f demo-report.txt ] && sed 's/^/    /' demo-report.txt
 fi
 
-step "4/5 demo.prompts.tsx (blocking interactive prompts)"
+step "4/6 demo.prompts.tsx (blocking interactive prompts)"
 if bun src/demo.prompts.tsx >/dev/null 2>&1 && grep -qE '^PASS' demo-prompts-report.txt; then
   ok "$(grep -E '^PASS' demo-prompts-report.txt | tail -1)"
 else
@@ -44,7 +47,15 @@ else
   [ -f demo-prompts-report.txt ] && grep -E '✗|FAIL' demo-prompts-report.txt | sed 's/^/    /'
 fi
 
-step "5/5 demo.real.tsx (real Python gateway)"
+step "5/6 demo.resume.tsx (session resume + tool-call render)"
+if bun src/demo.resume.tsx >/dev/null 2>&1 && grep -qE '^PASS' demo-resume-report.txt; then
+  ok "$(grep -E '^PASS' demo-resume-report.txt | tail -1)"
+else
+  bad "resume demo failed (tool calls not rendering on resume?)"
+  [ -f demo-resume-report.txt ] && grep -E '✗|FAIL' demo-resume-report.txt | sed 's/^/    /'
+fi
+
+step "6/6 demo.real.tsx (real Python gateway)"
 if [ "${HERMES_OPENTUI_SKIP_REAL:-0}" = "1" ]; then
   skip "skipped (HERMES_OPENTUI_SKIP_REAL=1)"
 else

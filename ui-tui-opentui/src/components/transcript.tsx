@@ -8,7 +8,7 @@ import { MessageLine } from './messageLine.tsx'
 
 export function Transcript({ msgs, t, cols }: { msgs: Msg[]; t: Theme; cols: number }) {
   return (
-    <scrollbox stickyScroll stickyStart="bottom" style={{ flexGrow: 1, flexDirection: 'column' }}>
+    <scrollbox stickyScroll stickyStart="bottom" style={{ flexGrow: 1, minHeight: 0 }}>
       {msgs.map((m, i) => (
         <MessageLine cols={cols} key={i} msg={m} t={t} />
       ))}
