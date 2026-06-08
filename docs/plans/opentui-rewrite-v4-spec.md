@@ -591,6 +591,10 @@ two gates run every phase.
   `session.list` → a native `<select>` overlay (`view/overlays/sessionSwitcher.tsx`) that resumes the
   chosen session via the shared `resumeInto` hydrate path (so tool rows hydrate). Live: list → pick →
   full transcript hydrated (smoke P5c). 3 of 6 first-class overlays now done (prompts, pager, switcher).
-- **Next:** completions dropdown (`/` → `complete.slash`), Phase 5b chrome (header model/cwd/context%/
-  cost from `session.info`+`Usage`), model picker + skills hub, agent features (5d), subagents/agents
-  dashboard (5e), Phase 8 launcher.
+- **Phase 5c — model picker + skills hub: ✅** (this commit). A generic `Picker` overlay
+  (`view/overlays/picker.tsx`) powers `/model` (bare→`model.options` picker, pick switches; `/model
+  <name>` direct) and `/skills` (`skills.manage list`→pick→inspect→pager). App input zone is now a
+  `<Switch>` (prompt→switcher→picker→composer). Live-verified (smoke P5c). **5 of 6 first-class
+  overlays done** (prompts, pager, session switcher, model picker, skills hub).
+- **Next:** completions dropdown (`/` → `complete.slash`) — the last first-class overlay; then chrome
+  (5b: header model/cwd/context%/cost), agent features (5d), agents dashboard (5e), Phase 8 launcher.

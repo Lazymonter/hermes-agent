@@ -113,8 +113,15 @@ Composer↔overlay swap on `store.state.prompt`; global Ctrl+C-quit gated on `!b
 |---|---|---|---|---|
 | Session switcher — `/sessions`/`/resume`/`/switch`/`/session` → `session.list` → `<select>` → resume (reuses Phase 4b hydrate) | `activeSessionSwitcher.tsx` (`appOverlays.tsx:145`) | `view/overlays/sessionSwitcher.tsx`, `logic/slash.ts`, `logic/resume.ts` `mapSessionList`, `entry` `resumeInto`/`onResume` | ✅ | `slash.test.ts` + `render.test.tsx` · **smoke P5c (live: list → pick → hydrate w/ tool row)** |
 
-_Remaining first-class surfaces: completions dropdown, model picker, skills hub, agents dashboard;
-plus chrome (5b) + agent features (5d). The §1–§4 Ink inventory below is the per-phase source._
+### Phase 5c — model picker + skills hub (generic Picker; §2b)
+| Concern | Ink ref | v2 build | Status | Test · smoke |
+|---|---|---|---|---|
+| Generic `Picker` overlay (titled `<select>` + onPick) | `appOverlays.tsx` | `view/overlays/picker.tsx`, store `picker`/openPicker/closePicker | ✅ | `render.test.tsx`?· smoke P5c |
+| Model picker — `/model` bare→picker (model.options, current marked) / `/model <name>`→switch | `modelPicker.tsx` | `logic/slash.ts` `modelCmd`+`mapModelOptions` | ✅ | `slash.test.ts` · **smoke P5c (live: 8 models, Esc)** |
+| Skills hub — `/skills`→picker (skills.manage list)→pick→inspect→pager | `skillsHub.tsx` | `logic/slash.ts` `skillsCmd`+`mapSkills` | ✅ | `slash.test.ts` · **smoke P5c (live)** |
+
+_Remaining first-class surfaces: completions dropdown, agents dashboard; plus chrome (5b) + agent
+features (5d). The §1–§4 Ink inventory below is the per-phase source._
 
 ---
 

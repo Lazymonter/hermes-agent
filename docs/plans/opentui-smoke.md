@@ -337,9 +337,25 @@ the SAME `resumeInto` hydrate path as launch (so tool rows hydrate), Esc closes.
     hydrated (user prompt + `⚡terminal echo resume-marker-42` + assistant reply); switcher closed,
     composer returned; `/quit` clean.
 
+### Phase 5c — model picker + skills hub (generic Picker; first-class)
+
+A generic `<select>` overlay (`view/overlays/picker.tsx`, store `picker {title, items, onPick}`)
+powers both: `/model` (bare → `model.options` → pick switches via `slash.exec model <name>`;
+`/model <name>` switches directly) and `/skills` (`skills.manage list` → pick → `inspect` → pager).
+The App input zone is now a `<Switch>`: prompt → switcher → picker → composer (overlays replace).
+
+- *Run log (2026-06-08, PASS):*
+  - Headless gate `bun run check` → **green** (47 tests / 7 files): slash `/model` (bare→picker of
+    authenticated providers' models w/ current marked; pick→`slash.exec`; `/model <name>` direct) +
+    `/skills` (flatten `skills.manage list`) + a Picker frame test.
+  - **Live tmux:** `/model` → picker (after ~5s — `model.options` is slow server-side) listing
+    `anthropic/claude-opus-4.8 ▶`, `nous`, `anthropic/claude-sonnet-4.6`, … (current marked); Esc
+    closed cleanly. `/skills` → hub (1s) listing `cua-driver-mac-automation`/`apple`/`claude-code`/…
+    with category descriptions. (Polish TODO: a "fetching…" indicator while `model.options` loads.)
+
 **Phase 5a (completions) / 5b / 5d / 5e (TODO):** completions dropdown (typing `/` → `complete.slash`);
-chrome (header model/cwd/context%/cost from `session.info`+`Usage`); model picker + skills hub;
-agent features (reasoning trail, todos, notifications, voice); subagents tree + agents dashboard.
+chrome (header model/cwd/context%/cost from `session.info`+`Usage`); agent features (reasoning trail,
+todos, notifications, voice); subagents tree + agents dashboard.
 
 ### Phase 8 — launcher
 _(append: launch via the real `HERMES_TUI_ENGINE=opentui hermes --tui`; dashboard PTY path)_
