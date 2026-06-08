@@ -25,6 +25,27 @@ Legend: ✅ done in OpenTUI · ⚠️ partial · ❌ missing · 🔴 blocking (u
 3-way: **Ink** (source of truth) ↔ **opencode** (method ref) ↔ **v2 build** (status + new file:line).
 A row is ✅ only when it has a test (Layer 1–4) AND a smoke-doc check. The judge scores against this.
 
+### Acceptance summary — first-class surfaces + phases (all ✅ + tested + smoked)
+
+| # | Surface / phase | Ink ref | opencode ref | v2 build | Status | Test · smoke |
+|---|---|---|---|---|---|---|
+| — | Scaffold · Effect boundary · runtime · render bridge | — | `app.tsx` | `boundary/*`, `entry/main.tsx` | ✅ | `render`/`gateway`.test · P0 |
+| — | Live transport (`GatewayService`/`liveGateway`) + `GatewayEvent` Schema decode-once | `gatewayClient.ts`, `gatewayTypes.ts` | `context/sdk.tsx` | `boundary/gateway/*`, `boundary/schema/*` | ✅ | `schema`/`gateway`/`liveGateway.smoke` · P1 |
+| — | Store (sync-v2: stream-concat · LRU · ordered parts · skin→theme · hydrate) | `cgeh.ts` | `context/sync-v2.tsx` | `logic/store.ts` | ✅ | `store.test.ts` · P1/P2 |
+| — | Transcript scrollbox · inline tools · native markdown · composer · header | `transcript`/`appLayout` | `session-v2.tsx` | `view/*` | ✅ | `render.test.tsx` · P2 |
+| 1 | **Blocking prompts** (approval/clarify/sudo/secret + confirm) | `cgeh.ts:722`, `prompts.tsx` | `permission.tsx` | `view/prompts/*` | ✅ | `store`/`render`.test · P3 (live: approve/deny/Ctrl+C) |
+| 2 | **Slash system** (dispatch ladder + client cmds + catalog) | `createSlashHandler.ts` | — | `logic/slash.ts` | ✅ | `slash.test.ts` · P4 (`/help`,`/version`) |
+| 3 | **Session resume** + switcher | `useSessionLifecycle`, `activeSessionSwitcher.tsx` | `sync-v2.tsx` | `logic/resume.ts`, `view/overlays/sessionSwitcher.tsx` | ✅ | `resume`/`slash`/`render`.test · P4b/P5c (live + 103-msg stress) |
+| 4 | **Pager** | `appOverlays.tsx:177` | — | `view/overlays/pager.tsx` | ✅ | `slash`/`render`.test · P5a (`/logs`,`/version`) |
+| 5 | **Model picker** + **skills hub** (generic Picker) | `modelPicker.tsx`, `skillsHub.tsx` | — | `view/overlays/picker.tsx` | ✅ | `slash`/`render`.test · P5c (live) |
+| 6 | **Completions dropdown** | `useCompletion.ts` | — | `view/composer.tsx` | ✅ | `slash`/`render`.test · P5a (live: `/comp`→Tab) |
+| 7 | **Agents dashboard** (subagent tree) | `agentsOverlay`, `thinking.tsx:281` | — | `view/overlays/agentsDashboard.tsx` | ✅ | `store`/`render`.test · P5e (live delegation) |
+| 8 | **Launcher cutover** (`_make_opentui_argv` → v2 Solid entry) | `main.py` | `cli/cmd/tui.ts` | `hermes_cli/main.py` | ✅ | py_compile + resolution · P8 |
+
+53 tests / 7 files; `bun run check` green every phase; each surface live-smoked in tmux. Remaining
+polish (NOT first-class blockers): header chrome detail (model/cwd/context%/cost from
+`session.info`+`Usage`) and agent-feature trail (reasoning/todos/notifications/voice) — §3 below.
+
 ### Phase 0 — scaffold (foundation; commit `a47c6df`)
 | Concern | opencode ref | v2 build | Status | Test · smoke |
 |---|---|---|---|---|

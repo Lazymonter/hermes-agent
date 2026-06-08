@@ -397,5 +397,22 @@ agents dashboard (P5e).
 **Phase 5b / 5d (remaining):** header chrome (model/cwd/context%/cost from `session.info`+`Usage`);
 agent feature polish (reasoning trail, todos, notifications, voice). Then Phase 8 launcher cutover.
 
-### Phase 8 — launcher
-_(append: launch via the real `HERMES_TUI_ENGINE=opentui hermes --tui`; dashboard PTY path)_
+### Phase 8 — launcher cutover
+
+`hermes_cli/main.py` `_make_opentui_argv` is repointed from the old React entry to the v4 Solid
+entry: it now prefers `ui-tui-opentui-v2/src/entry/main.tsx` (cwd `ui-tui-opentui-v2`), falling back
+to the superseded `ui-tui-opentui/src/entry.real.tsx` only if the v2 package is absent. The engine
+gate (`_resolve_tui_engine`: `HERMES_TUI_ENGINE`/`display.tui_engine` → opentui, Windows/Termux →
+Ink) and the dual-engine dispatch in `_make_tui_argv` are unchanged. The spawned `tui_gateway`'s
+source-root default lands on `PROJECT_ROOT` (the package sits at `<root>/ui-tui-opentui-v2`), so the
+gateway loads Python from the same checkout with no extra env.
+
+- *Run log (2026-06-08, PASS):*
+  - `py_compile hermes_cli/main.py` → OK (dev-skill rule for the large file).
+  - Cutover logic (imported the worktree CLI, `HERMES_TUI_ENGINE=opentui`): `_resolve_tui_engine()`
+    → `opentui`; `_make_opentui_argv(False)` → `[bun, …/ui-tui-opentui-v2/src/entry/main.tsx]`, cwd
+    `ui-tui-opentui-v2`; `--watch` added in dev. So `hermes --tui` now dispatches to the v4 Solid
+    engine — the exact `bun …/v2/src/entry/main.tsx` invocation live-smoked in P1–P5e.
+  - Ink (`ui-tui/`) untouched; the engine gate still defaults to Ink and falls back to Ink on
+    Windows/Termux. Distribution realities (Bun + per-arch native lib; runtime-provisioned) per spec
+    §10 are unchanged and remain the deploy plan.

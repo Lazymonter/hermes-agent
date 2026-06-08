@@ -606,5 +606,12 @@ two gates run every phase.
   depth-indented status·goal·model·tool). Live-verified with a real delegation (smoke P5e). **ALL 7
   first-class interactive surfaces are now ✅ + tested + smoked** (blocking prompts, pager, session
   switcher, model picker, skills hub, completions, agents dashboard) — the judge's acceptance bar.
-- **Next:** Phase 5b chrome (header model/cwd/context%/cost from `session.info`+`Usage`), Phase 5d
-  agent-feature polish (reasoning trail/todos/notifications/voice), Phase 8 launcher cutover + dist.
+- **Phase 8 — launcher cutover: ✅** (this commit). `hermes_cli/main.py` `_make_opentui_argv` now
+  prefers the v4 Solid entry (`ui-tui-opentui-v2/src/entry/main.tsx`), falling back to the old React
+  build only if v2 is absent; the engine gate + dual-engine dispatch are unchanged; Ink untouched.
+  Verified: `py_compile` OK; `HERMES_TUI_ENGINE=opentui` → engine `opentui` + argv at the v2 entry
+  (smoke P8). So `hermes --tui` launches the v4 engine — every first-class surface is reachable from
+  the real CLI. The consolidated 3-way parity matrix (acceptance summary) is in `opentui-feature-map.md`.
+- **Remaining polish (not first-class blockers):** Phase 5b header chrome (model/cwd/context%/cost
+  from `session.info`+`Usage`), Phase 5d agent-feature trail (reasoning/todos/notifications/voice),
+  distribution (§10: Bun + per-arch native lib, Docker prebuild) + a perf bench vs Ink.
