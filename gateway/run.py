@@ -1744,6 +1744,10 @@ os.environ["HERMES_EXEC_ASK"] = "1"
 # see gateway/cwd_placeholder.py for the three-case contract (local vs docker
 # mount-off vs docker mount-on).  MESSAGING_CWD is a backward-compat fallback.
 from gateway.cwd_placeholder import CWD_PLACEHOLDERS, resolve_placeholder_terminal_cwd
+from gateway.channel_context import (
+    ChannelContextResolver,
+    merge_channel_context,
+)
 
 _configured_cwd = os.environ.get("TERMINAL_CWD", "")
 if not _configured_cwd or _configured_cwd in CWD_PLACEHOLDERS:
@@ -2420,6 +2424,21 @@ def _load_gateway_runtime_config() -> dict:
 
     expanded = _expand_env_vars(cfg)
     return expanded if isinstance(expanded, dict) else {}
+
+
+_channel_context_resolver = ChannelContextResolver()
+
+
+def _load_configured_channel_context(source: SessionSource) -> Optional[str]:
+    """Resolve profile-scoped configured context for one inbound chat."""
+
+    cfg = _load_gateway_runtime_config()
+    config_value = cfg_get(cfg, "gateway", "channel_context_map", default=None)
+    return _channel_context_resolver.context_for(
+        source,
+        config_value,
+        config_home=_gateway_config_home(),
+    )
 
 
 def _resolve_gateway_model(config: dict | None = None) -> str:
@@ -10552,11 +10571,16 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
         if _is_shared_multi_user and source.user_name:
             message_text = f"[{source.user_name}] {message_text}"
 
-        # Prepend channel context from history backfill (if any).  This
-        # happens after sender-prefix so the prefix only applies to the
-        # trigger message, not the backfill block.
-        if getattr(event, "channel_context", None):
-            message_text = f"{event.channel_context}\n\n[New message]\n{message_text}"
+        # Prepend adapter/backfill context followed by deterministic context
+        # configured for this platform-qualified chat.  Keep the merge local:
+        # mutating event.channel_context would duplicate configured context if
+        # the same event is prepared again after a retry or queue transition.
+        channel_context = merge_channel_context(
+            getattr(event, "channel_context", None),
+            _load_configured_channel_context(source),
+        )
+        if channel_context:
+            message_text = f"{channel_context}\n\n[New message]\n{message_text}"
 
         # Declare at outer scope so the audio-file-paths handling block below
         # remains safe when ``event.media_urls`` is empty (no inner block runs).
